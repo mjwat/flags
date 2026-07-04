@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guess the Flag</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="screen screen-active" id="start-screen" aria-labelledby="app-title">
+        <div class="panel hero-panel">
+          <p class="eyebrow">Fast Flag Challenge</p>
+          <h1 id="app-title">Guess the Flag</h1>
+          <p class="hero-copy">
+            Identify as many countries as you can in 60 seconds. One flag, four choices, no
+            distractions.
+          </p>
+          <button class="primary-button" id="start-game-button" type="button" disabled>Start Game</button>
+        </div>
+
+        <div class="panel leaderboard-panel">
+          <div class="section-heading">
+            <h2>Leaderboard</h2>
+            <p>Top 10 local scores on this device.</p>
+          </div>
+          <div id="leaderboard-empty" class="empty-state">No scores yet. Be the first to play.</div>
+          <ol id="leaderboard-list" class="leaderboard-list" aria-live="polite"></ol>
+        </div>
+      </section>
+
+      <section class="screen" id="game-screen" aria-labelledby="game-title" hidden>
+        <div class="status-bar panel">
+          <div class="status-chip">
+            <span class="status-label">Time</span>
+            <strong id="timer-display">60s</strong>
+          </div>
+          <div class="status-chip">
+            <span class="status-label">Score</span>
+            <strong id="score-display">0</strong>
+          </div>
+          <div class="status-chip">
+            <span class="status-label">Question</span>
+            <strong id="question-display">1</strong>
+          </div>
+        </div>
+
+        <div class="panel game-panel">
+          <h2 class="visually-hidden" id="game-title">Game Screen</h2>
+          <p class="prompt-text">Which country does this flag belong to?</p>
+          <div class="flag-card" aria-live="polite">
+            <div id="flag-display" class="flag-display" role="img" aria-label="Current flag">🏳️</div>
+          </div>
+          <div id="feedback-text" class="feedback-text" aria-live="assertive">
+            Choose the correct country name.
+          </div>
+          <div class="answers-grid" id="answers-grid"></div>
+        </div>
+      </section>
+
+      <section class="screen" id="results-screen" aria-labelledby="results-title" hidden>
+        <div class="panel results-panel">
+          <p class="eyebrow">Time&apos;s Up</p>
+          <h2 id="results-title">Your Results</h2>
+          <div class="results-grid">
+            <article class="result-card">
+              <span class="result-label">Final Score</span>
+              <strong id="final-score">0</strong>
+            </article>
+            <article class="result-card">
+              <span class="result-label">Correct / Answered</span>
+              <strong id="final-correct-answered">0 / 0</strong>
+            </article>
+          </div>
+
+          <form id="save-score-form" class="save-score-form">
+            <label for="player-name">Player name</label>
+            <div class="save-row">
+              <input
+                id="player-name"
+                name="playerName"
+                type="text"
+                maxlength="20"
+                autocomplete="nickname"
+                placeholder="Enter your name"
+              />
+              <button class="primary-button" type="submit" id="save-score-button">Save Score</button>
+            </div>
+            <p id="save-status" class="save-status" aria-live="polite"></p>
+          </form>
+
+          <div class="results-actions">
+            <button class="secondary-button" id="play-again-button" type="button">Play Again</button>
+          </div>
+        </div>
+
+        <div class="panel leaderboard-panel">
+          <div class="section-heading">
+            <h2>Leaderboard</h2>
+          </div>
+          <div id="results-leaderboard-empty" class="empty-state">No scores yet. Save your result.</div>
+          <ol id="results-leaderboard-list" class="leaderboard-list" aria-live="polite"></ol>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js" defer></script>
+  </body>
+</html>
