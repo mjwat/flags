@@ -7,6 +7,7 @@ const state = {
   countries: [],
   usedCountryCodes: new Set(),
   currentQuestion: null,
+  questionHistory: [],
   score: 0,
   correctAnswers: 0,
   incorrectAnswers: 0,
@@ -26,13 +27,18 @@ const elements = {
   },
   startGameButton: document.getElementById("start-game-button"),
   playAgainButton: document.getElementById("play-again-button"),
+  flagCard: document.querySelector(".flag-card"),
+  historyPanel: document.querySelector(".history-panel"),
+  historyTitle: document.getElementById("history-title"),
   timerDisplay: document.getElementById("timer-display"),
+  timeMeterFill: document.getElementById("time-meter-fill"),
   scoreDisplay: document.getElementById("score-display"),
   questionDisplay: document.getElementById("question-display"),
   flagDisplay: document.getElementById("flag-display"),
   feedbackText: document.getElementById("feedback-text"),
   answersGrid: document.getElementById("answers-grid"),
-  finalScore: document.getElementById("final-score"),
+  historyList: document.getElementById("history-list"),
+  flagMarqueeTrack: document.getElementById("flag-marquee-track"),
   finalCorrectAnswered: document.getElementById("final-correct-answered"),
   saveScoreForm: document.getElementById("save-score-form"),
   playerNameInput: document.getElementById("player-name"),
@@ -48,13 +54,17 @@ const elements = {
 
 document.addEventListener("DOMContentLoaded", initializeApp);
 
+let historyLayoutObserver = null;
+
 async function initializeApp() {
   bindEvents();
   renderLeaderboard();
+  setupHistoryLayoutSync();
 
   try {
     state.countries = await loadCountries();
-    elements.feedbackText.textContent = "Choose the correct country name.";
+    renderFlagMarquee();
+    elements.feedbackText.textContent = "";
     elements.startGameButton.disabled = false;
   } catch (error) {
     console.error(error);
@@ -67,6 +77,7 @@ function bindEvents() {
   elements.startGameButton.addEventListener("click", startGame);
   elements.playAgainButton.addEventListener("click", startGame);
   elements.saveScoreForm.addEventListener("submit", handleSaveScore);
+  window.addEventListener("resize", syncHistoryPanelHeight);
 }
 
 async function loadCountries() {
@@ -100,7 +111,8 @@ function startGame() {
   resetGameState();
   showScreen("game");
   updateHud();
-  setFeedbackMessage("Choose the correct country name.");
+  setFeedbackMessage("");
+  syncHistoryPanelHeight();
   startTimer();
   renderNextQuestion();
 }
@@ -111,6 +123,7 @@ function resetGameState() {
 
   state.usedCountryCodes = new Set();
   state.currentQuestion = null;
+  state.questionHistory = [];
   state.score = 0;
   state.correctAnswers = 0;
   state.incorrectAnswers = 0;
@@ -165,9 +178,15 @@ function renderNextQuestion() {
 
   state.currentQuestion = question;
   state.questionNumber += 1;
+  state.questionHistory.push({
+    flag: question.flag,
+    country: question.country,
+    isCorrect: null,
+  });
 
   elements.flagDisplay.textContent = question.flag;
   elements.flagDisplay.setAttribute("aria-label", "Current flag question");
+  renderHistory();
   updateHud();
   renderAnswerButtons(question.answers);
 }
@@ -237,23 +256,22 @@ function handleAnswerSelection(selectedButton) {
 
     if (buttonIsCorrect) {
       button.classList.add("is-correct");
-      appendAnswerState(button, "Correct answer");
     }
 
     if (button === selectedButton && !isCorrect) {
       button.classList.add("is-incorrect");
-      appendAnswerState(button, "Your choice");
     }
   });
 
   if (isCorrect) {
     state.score += 1;
     state.correctAnswers += 1;
-    setFeedbackMessage("Correct answer.", "is-correct");
   } else {
     state.incorrectAnswers += 1;
-    setFeedbackMessage(`Incorrect. The correct answer was ${state.currentQuestion.country}.`, "is-incorrect");
   }
+
+  updateHistoryEntry(isCorrect);
+  setFeedbackMessage("");
 
   updateHud();
   clearNextQuestionTimeout();
@@ -262,13 +280,6 @@ function handleAnswerSelection(selectedButton) {
       renderNextQuestion();
     }
   }, ANSWER_DELAY_MS);
-}
-
-function appendAnswerState(button, label) {
-  const stateText = document.createElement("span");
-  stateText.className = "answer-state";
-  stateText.textContent = label;
-  button.appendChild(stateText);
 }
 
 function endGame() {
@@ -296,10 +307,18 @@ function disableAnswerButtons() {
 function renderResults() {
   const totalAnswered = state.correctAnswers + state.incorrectAnswers;
 
-  elements.finalScore.textContent = String(state.score);
   elements.finalCorrectAnswered.textContent = `${state.correctAnswers} / ${totalAnswered}`;
   elements.saveStatus.textContent = "";
   elements.saveScoreButton.disabled = false;
+}
+
+function updateHistoryEntry(isCorrect) {
+  if (!state.questionHistory.length) {
+    return;
+  }
+
+  state.questionHistory[state.questionHistory.length - 1].isCorrect = isCorrect;
+  renderHistory();
 }
 
 function handleSaveScore(event) {
@@ -335,7 +354,7 @@ function handleSaveScore(event) {
 
   state.scoreSaved = true;
   elements.saveScoreButton.disabled = true;
-  elements.saveStatus.textContent = "Score saved to the local leaderboard.";
+  elements.saveStatus.textContent = "";
   renderLeaderboard();
 }
 
@@ -372,13 +391,16 @@ function renderLeaderboardList(listElement, emptyElement, leaderboard) {
   emptyElement.hidden = hasEntries;
   listElement.hidden = !hasEntries;
 
-  leaderboard.forEach((entry) => {
+  leaderboard.forEach((entry, index) => {
     const item = document.createElement("li");
     item.className = "leaderboard-entry";
 
     const topLine = document.createElement("div");
     topLine.className = "leaderboard-topline";
-    topLine.innerHTML = `<span>${escapeHtml(entry.playerName)}</span><span>${entry.correctAnswers} / ${entry.totalQuestions}</span>`;
+    topLine.innerHTML =
+      `<span class="leaderboard-rank">${index + 1}.</span>` +
+      `<span class="leaderboard-name">${escapeHtml(entry.playerName)}</span>` +
+      `<span class="leaderboard-score">${entry.correctAnswers} / ${entry.totalQuestions}</span>`;
 
     item.appendChild(topLine);
     listElement.appendChild(item);
@@ -389,6 +411,74 @@ function updateHud() {
   elements.timerDisplay.textContent = `${Math.max(state.timeLeft, 0)}s`;
   elements.scoreDisplay.textContent = String(state.score);
   elements.questionDisplay.textContent = String(Math.max(state.questionNumber, 1));
+  updateTimeMeter();
+}
+
+function renderHistory() {
+  elements.historyList.innerHTML = "";
+
+  state.questionHistory.forEach((entry, index) => {
+    const item = document.createElement("li");
+    item.className = "history-item";
+
+    const number = document.createElement("span");
+    number.className = "history-number";
+    number.textContent = `${index + 1}.`;
+
+    const summary = document.createElement("span");
+    summary.className = "history-summary";
+    summary.textContent =
+      entry.isCorrect === null
+        ? `${entry.flag} ❓`
+        : `${entry.flag} ${entry.country} ${entry.isCorrect ? "✅" : "❌"}`;
+
+    if (entry.isCorrect === true) {
+      item.classList.add("is-correct");
+    } else if (entry.isCorrect === false) {
+      item.classList.add("is-incorrect");
+    }
+
+    item.append(number, summary);
+    elements.historyList.appendChild(item);
+  });
+
+  syncHistoryPanelHeight();
+  window.requestAnimationFrame(() => {
+    elements.historyList.scrollTop = elements.historyList.scrollHeight;
+    updateHistoryOverflowState();
+  });
+}
+
+function setupHistoryLayoutSync() {
+  if (typeof ResizeObserver !== "function") {
+    syncHistoryPanelHeight();
+    return;
+  }
+
+  historyLayoutObserver = new ResizeObserver(() => {
+    syncHistoryPanelHeight();
+  });
+
+  historyLayoutObserver.observe(elements.flagCard);
+  historyLayoutObserver.observe(elements.historyTitle);
+}
+
+function syncHistoryPanelHeight() {
+  const flagCardHeight = elements.flagCard.getBoundingClientRect().height;
+  const titleHeight = elements.historyTitle.getBoundingClientRect().height;
+  const panelStyles = window.getComputedStyle(elements.historyPanel);
+  const panelGap = Number.parseFloat(panelStyles.rowGap || panelStyles.gap || "0");
+  const availableListHeight = Math.max(flagCardHeight - titleHeight - panelGap, 0);
+
+  elements.historyPanel.style.height = `${flagCardHeight}px`;
+  elements.historyPanel.style.setProperty("--history-title-offset", `${titleHeight + panelGap}px`);
+  elements.historyList.style.maxHeight = `${availableListHeight}px`;
+  updateHistoryOverflowState();
+}
+
+function updateHistoryOverflowState() {
+  const isOverflowing = elements.historyList.scrollHeight > elements.historyList.clientHeight + 1;
+  elements.historyPanel.classList.toggle("is-overflowing", isOverflowing);
 }
 
 function setFeedbackMessage(message, stateClass = "") {
@@ -397,6 +487,25 @@ function setFeedbackMessage(message, stateClass = "") {
   if (stateClass) {
     elements.feedbackText.classList.add(stateClass);
   }
+}
+
+function updateTimeMeter() {
+  const percentage = Math.max(0, Math.min(1, state.timeLeft / GAME_DURATION_SECONDS));
+  const hue = Math.round(percentage * 120);
+  elements.timeMeterFill.style.width = `${percentage * 100}%`;
+  elements.timeMeterFill.style.background = `linear-gradient(90deg, hsl(${hue} 72% 50%), hsl(${Math.max(
+    hue - 18,
+    0
+  )} 82% 58%))`;
+}
+
+function renderFlagMarquee() {
+  const flags = shuffleArray(state.countries.map((country) => country.flag)).slice(0, 18);
+  const content = [...flags, ...flags]
+    .map((flag, index) => `<span class="flag-marquee-item" style="--item-delay:${index * 40}ms">${flag}</span>`)
+    .join("");
+
+  elements.flagMarqueeTrack.innerHTML = content;
 }
 
 function showScreen(screenName) {
