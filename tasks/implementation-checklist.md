@@ -71,9 +71,7 @@
 
 - [x] Show final score
 - [x] Show correct answers
-- [x] Show incorrect answers
 - [x] Show total answered questions
-- [x] Show accuracy percentage
 - [x] Add player name input
 - [x] Add Save Score button
 - [x] Add Play Again button

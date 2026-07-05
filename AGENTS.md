@@ -169,9 +169,7 @@ Display:
 
 - final score
 - correct answers
-- incorrect answers
 - total answered questions
-- accuracy percentage
 
 Provide:
 
@@ -205,11 +203,7 @@ localStorage
 Each record contains:
 
 - player name
-- score
-- correct answers
-- total questions
-- accuracy
-- date
+- correct answers / total questions
 
 Requirements:
 

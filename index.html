@@ -14,22 +14,22 @@
     <main class="app-shell">
       <section class="screen screen-active" id="start-screen" aria-labelledby="app-title">
         <div class="panel hero-panel">
+          <div class="flag-marquee" aria-hidden="true">
+            <div class="flag-marquee-track" id="flag-marquee-track"></div>
+          </div>
           <h1 id="app-title">Guess the Flag</h1>
           <p class="hero-copy">
             Identify as many countries as you can in 60 seconds. One flag, four choices, no
             distractions.
           </p>
-          <div class="flag-marquee" aria-hidden="true">
-            <div class="flag-marquee-track" id="flag-marquee-track"></div>
-          </div>
           <button class="primary-button" id="start-game-button" type="button" disabled>Start Game</button>
         </div>
 
         <div class="panel leaderboard-panel">
           <div class="section-heading">
-            <h2>Leaderboard</h2>
-            <p>Top 10 players</p>
+            <h2>🏆 Leaderboard</h2>
           </div>
+          <p id="leaderboard-status" class="leaderboard-status" aria-live="polite">Loading leaderboard...</p>
           <div id="leaderboard-empty" class="empty-state">No scores yet. Be the first to play.</div>
           <ol id="leaderboard-list" class="leaderboard-list" aria-live="polite"></ol>
         </div>
@@ -61,10 +61,6 @@
               <p class="prompt-text">Guess the Country</p>
               <div id="flag-display" class="flag-display" role="img" aria-label="Current flag">🏳️</div>
             </div>
-            <aside class="history-panel" aria-labelledby="history-title">
-              <h3 id="history-title" class="history-title">Your answers</h3>
-              <ol id="history-list" class="history-list" aria-live="polite"></ol>
-            </aside>
           </div>
           <div id="feedback-text" class="feedback-text" aria-live="assertive"></div>
           <div class="answers-grid" id="answers-grid"></div>
@@ -73,8 +69,10 @@
 
       <section class="screen" id="results-screen" aria-labelledby="results-title" hidden>
         <div class="panel results-panel">
-          <p class="eyebrow">Time&apos;s Up</p>
-          <h2 id="results-title">Your Results</h2>
+          <div class="results-header">
+            <h2 id="results-title">Your Results</h2>
+            <p class="eyebrow">Time&apos;s Up</p>
+          </div>
           <div class="results-grid">
             <article class="result-card">
               <span class="result-label">Correct / Answered</span>
@@ -82,8 +80,13 @@
             </article>
           </div>
 
+          <aside class="history-panel results-history-panel" aria-labelledby="history-title">
+            <h3 id="history-title" class="history-title">Your answers</h3>
+            <ol id="history-list" class="history-list" aria-live="polite"></ol>
+          </aside>
+
           <form id="save-score-form" class="save-score-form">
-            <label for="player-name">Player name</label>
+            <label for="player-name">Name</label>
             <div class="save-row">
               <input
                 id="player-name"
@@ -92,8 +95,9 @@
                 maxlength="20"
                 autocomplete="nickname"
                 placeholder="Enter your name"
+                value="Player"
               />
-              <button class="primary-button" type="submit" id="save-score-button">Save Score</button>
+              <button class="primary-button" type="submit" id="save-score-button">Save</button>
             </div>
             <p id="save-status" class="save-status" aria-live="polite"></p>
           </form>
@@ -105,8 +109,11 @@
 
         <div class="panel leaderboard-panel">
           <div class="section-heading">
-            <h2>Leaderboard</h2>
+            <h2>🏆 Leaderboard</h2>
           </div>
+          <p id="results-leaderboard-status" class="leaderboard-status" aria-live="polite">
+            Loading leaderboard...
+          </p>
           <div id="results-leaderboard-empty" class="empty-state">No scores yet. Save your result.</div>
           <ol id="results-leaderboard-list" class="leaderboard-list" aria-live="polite"></ol>
         </div>

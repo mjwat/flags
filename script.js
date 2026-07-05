@@ -1,7 +1,11 @@
 const GAME_DURATION_SECONDS = 60;
 const ANSWER_COUNT = 4;
 const ANSWER_DELAY_MS = 900;
+const MAX_LEADERBOARD_ENTRIES = 10;
 const LEADERBOARD_STORAGE_KEY = "guess-the-flag-leaderboard";
+const YHUB_LEADERBOARD_ENTITY = "leaderboard_scores";
+const YHUB_LEADERBOARD_ENDPOINT = `/api/${YHUB_LEADERBOARD_ENTITY}`;
+const YHUB_LEADERBOARD_FETCH_LIMIT = 100;
 
 const state = {
   countries: [],
@@ -17,6 +21,8 @@ const state = {
   timerId: null,
   nextQuestionTimeoutId: null,
   scoreSaved: false,
+  leaderboardEntries: [],
+  leaderboardSource: "loading",
 };
 
 const elements = {
@@ -27,7 +33,6 @@ const elements = {
   },
   startGameButton: document.getElementById("start-game-button"),
   playAgainButton: document.getElementById("play-again-button"),
-  flagCard: document.querySelector(".flag-card"),
   historyPanel: document.querySelector(".history-panel"),
   historyTitle: document.getElementById("history-title"),
   timerDisplay: document.getElementById("timer-display"),
@@ -47,22 +52,22 @@ const elements = {
   leaderboard: {
     startList: document.getElementById("leaderboard-list"),
     startEmpty: document.getElementById("leaderboard-empty"),
+    startStatus: document.getElementById("leaderboard-status"),
     resultsList: document.getElementById("results-leaderboard-list"),
     resultsEmpty: document.getElementById("results-leaderboard-empty"),
+    resultsStatus: document.getElementById("results-leaderboard-status"),
   },
 };
 
 document.addEventListener("DOMContentLoaded", initializeApp);
 
-let historyLayoutObserver = null;
-
 async function initializeApp() {
   bindEvents();
-  renderLeaderboard();
-  setupHistoryLayoutSync();
+  setLeaderboardStatus("Loading leaderboard...");
 
   try {
-    state.countries = await loadCountries();
+    const [countries] = await Promise.all([loadCountries(), refreshLeaderboard()]);
+    state.countries = countries;
     renderFlagMarquee();
     elements.feedbackText.textContent = "";
     elements.startGameButton.disabled = false;
@@ -77,7 +82,6 @@ function bindEvents() {
   elements.startGameButton.addEventListener("click", startGame);
   elements.playAgainButton.addEventListener("click", startGame);
   elements.saveScoreForm.addEventListener("submit", handleSaveScore);
-  window.addEventListener("resize", syncHistoryPanelHeight);
 }
 
 async function loadCountries() {
@@ -112,7 +116,6 @@ function startGame() {
   showScreen("game");
   updateHud();
   setFeedbackMessage("");
-  syncHistoryPanelHeight();
   startTimer();
   renderNextQuestion();
 }
@@ -132,8 +135,8 @@ function resetGameState() {
   state.gameActive = true;
   state.scoreSaved = false;
 
-  elements.playerNameInput.value = "";
-  elements.saveStatus.textContent = "";
+  elements.playerNameInput.value = "Player";
+  setSaveStatus("");
   elements.saveScoreButton.disabled = false;
 }
 
@@ -308,7 +311,7 @@ function renderResults() {
   const totalAnswered = state.correctAnswers + state.incorrectAnswers;
 
   elements.finalCorrectAnswered.textContent = `${state.correctAnswers} / ${totalAnswered}`;
-  elements.saveStatus.textContent = "";
+  setSaveStatus("");
   elements.saveScoreButton.disabled = false;
 }
 
@@ -321,57 +324,81 @@ function updateHistoryEntry(isCorrect) {
   renderHistory();
 }
 
-function handleSaveScore(event) {
+async function handleSaveScore(event) {
   event.preventDefault();
 
   if (state.scoreSaved) {
-    elements.saveStatus.textContent = "Score already saved for this round.";
+    setSaveStatus("Score already saved for this round.");
     return;
   }
 
-  const playerName = elements.playerNameInput.value.trim();
-  if (!playerName) {
-    elements.saveStatus.textContent = "Enter a player name before saving.";
-    elements.playerNameInput.focus();
-    return;
+  const playerName = elements.playerNameInput.value.trim() || "Player";
+  if (!elements.playerNameInput.value.trim()) {
+    elements.playerNameInput.value = playerName;
   }
 
   const totalQuestions = state.correctAnswers + state.incorrectAnswers;
   const accuracy = totalQuestions > 0 ? Math.round((state.correctAnswers / totalQuestions) * 100) : 0;
-  const leaderboard = getLeaderboard();
-
-  leaderboard.push({
+  const entry = {
     playerName,
     score: state.score,
     correctAnswers: state.correctAnswers,
     totalQuestions,
     accuracy,
     date: new Date().toISOString(),
-  });
+  };
 
-  const sortedLeaderboard = sortLeaderboard(leaderboard).slice(0, 10);
-  localStorage.setItem(LEADERBOARD_STORAGE_KEY, JSON.stringify(sortedLeaderboard));
-
-  state.scoreSaved = true;
   elements.saveScoreButton.disabled = true;
-  elements.saveStatus.textContent = "";
-  renderLeaderboard();
+  setSaveStatus("Saving score...");
+
+  try {
+    await saveRemoteLeaderboardEntry(entry);
+    state.scoreSaved = true;
+    setSaveStatus("Saved to the global leaderboard.", "is-success");
+    await refreshLeaderboard();
+    return;
+  } catch (error) {
+    console.warn("Unable to save to the Yhub leaderboard. Falling back to local storage.", error);
+  }
+
+  try {
+    saveLocalLeaderboardEntry(entry);
+    state.scoreSaved = true;
+    setSaveStatus("Global leaderboard unavailable. Saved locally for this browser.", "is-warning");
+    await refreshLeaderboard();
+  } catch (error) {
+    console.error("Unable to save leaderboard entry.", error);
+    elements.saveScoreButton.disabled = false;
+    setSaveStatus("Unable to save your score right now.", "is-error");
+  }
 }
 
-function getLeaderboard() {
+function getLocalLeaderboard() {
   try {
     const raw = localStorage.getItem(LEADERBOARD_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.map(normalizeLeaderboardEntry).filter(Boolean) : [];
   } catch (error) {
     console.error("Unable to read leaderboard from localStorage.", error);
     return [];
   }
 }
 
+function saveLocalLeaderboardEntry(entry) {
+  const leaderboard = getLocalLeaderboard();
+  leaderboard.push(entry);
+  const sortedLeaderboard = sortLeaderboard(leaderboard).slice(0, MAX_LEADERBOARD_ENTRIES);
+  localStorage.setItem(LEADERBOARD_STORAGE_KEY, JSON.stringify(sortedLeaderboard));
+}
+
 function sortLeaderboard(entries) {
   return [...entries].sort((left, right) => {
-    if (right.correctAnswers !== left.correctAnswers) {
-      return right.correctAnswers - left.correctAnswers;
+    if (right.score !== left.score) {
+      return right.score - left.score;
+    }
+
+    if (right.accuracy !== left.accuracy) {
+      return right.accuracy - left.accuracy;
     }
 
     return new Date(right.date).getTime() - new Date(left.date).getTime();
@@ -379,7 +406,7 @@ function sortLeaderboard(entries) {
 }
 
 function renderLeaderboard() {
-  const leaderboard = sortLeaderboard(getLeaderboard()).slice(0, 10);
+  const leaderboard = sortLeaderboard(state.leaderboardEntries).slice(0, MAX_LEADERBOARD_ENTRIES);
   renderLeaderboardList(elements.leaderboard.startList, elements.leaderboard.startEmpty, leaderboard);
   renderLeaderboardList(elements.leaderboard.resultsList, elements.leaderboard.resultsEmpty, leaderboard);
 }
@@ -397,14 +424,137 @@ function renderLeaderboardList(listElement, emptyElement, leaderboard) {
 
     const topLine = document.createElement("div");
     topLine.className = "leaderboard-topline";
-    topLine.innerHTML =
-      `<span class="leaderboard-rank">${index + 1}.</span>` +
-      `<span class="leaderboard-name">${escapeHtml(entry.playerName)}</span>` +
-      `<span class="leaderboard-score">${entry.correctAnswers} / ${entry.totalQuestions}</span>`;
+    const rank = document.createElement("span");
+    rank.className = "leaderboard-rank";
+    rank.textContent = `${index + 1}.`;
 
+    const name = document.createElement("span");
+    name.className = "leaderboard-name";
+    name.textContent = entry.playerName;
+
+    const score = document.createElement("span");
+    score.className = "leaderboard-score";
+    score.textContent = `${entry.correctAnswers} / ${entry.totalQuestions}`;
+
+    topLine.append(rank, name, score);
     item.appendChild(topLine);
     listElement.appendChild(item);
   });
+}
+
+async function refreshLeaderboard() {
+  try {
+    const remoteEntries = await fetchRemoteLeaderboard();
+    state.leaderboardEntries = sortLeaderboard(remoteEntries).slice(0, MAX_LEADERBOARD_ENTRIES);
+    state.leaderboardSource = "global";
+    setLeaderboardStatus("");
+  } catch (error) {
+    console.warn("Unable to load the Yhub leaderboard. Falling back to local storage.", error);
+    state.leaderboardEntries = sortLeaderboard(getLocalLeaderboard()).slice(0, MAX_LEADERBOARD_ENTRIES);
+    state.leaderboardSource = "local";
+    setLeaderboardStatus("");
+  }
+
+  renderLeaderboard();
+}
+
+async function fetchRemoteLeaderboard() {
+  const url = new URL(YHUB_LEADERBOARD_ENDPOINT, window.location.origin);
+  url.searchParams.set("limit", String(YHUB_LEADERBOARD_FETCH_LIMIT));
+
+  const response = await fetch(url.toString(), {
+    cache: "no-store",
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Leaderboard request failed with status ${response.status}.`);
+  }
+
+  const payload = await response.json();
+  const entries = extractLeaderboardEntries(payload).map(normalizeLeaderboardEntry).filter(Boolean);
+  return sortLeaderboard(entries).slice(0, MAX_LEADERBOARD_ENTRIES);
+}
+
+async function saveRemoteLeaderboardEntry(entry) {
+  const response = await fetch(YHUB_LEADERBOARD_ENDPOINT, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      player_name: entry.playerName,
+      score: entry.score,
+      correct_answers: entry.correctAnswers,
+      total_questions: entry.totalQuestions,
+      accuracy: entry.accuracy,
+      played_at: entry.date,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Leaderboard save failed with status ${response.status}.`);
+  }
+
+  return response.json().catch(() => null);
+}
+
+function extractLeaderboardEntries(payload) {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  if (payload && Array.isArray(payload.data)) {
+    return payload.data;
+  }
+
+  return [];
+}
+
+function normalizeLeaderboardEntry(entry) {
+  if (!entry || typeof entry !== "object") {
+    return null;
+  }
+
+  const playerName = String(entry.playerName ?? entry.player_name ?? "").trim();
+  const score = Number(entry.score);
+  const correctAnswers = Number(entry.correctAnswers ?? entry.correct_answers);
+  const totalQuestions = Number(entry.totalQuestions ?? entry.total_questions);
+  const accuracy = Number(entry.accuracy);
+  const date = String(entry.date ?? entry.played_at ?? new Date().toISOString());
+
+  if (!playerName || Number.isNaN(score) || Number.isNaN(correctAnswers) || Number.isNaN(totalQuestions)) {
+    return null;
+  }
+
+  return {
+    playerName: playerName.slice(0, 20),
+    score,
+    correctAnswers,
+    totalQuestions,
+    accuracy: Number.isNaN(accuracy)
+      ? totalQuestions > 0
+        ? Math.round((correctAnswers / totalQuestions) * 100)
+        : 0
+      : accuracy,
+    date,
+  };
+}
+
+function setLeaderboardStatus(message) {
+  elements.leaderboard.startStatus.textContent = message;
+  elements.leaderboard.resultsStatus.textContent = message;
+}
+
+function setSaveStatus(message, stateClass = "") {
+  elements.saveStatus.textContent = message;
+  elements.saveStatus.classList.remove("is-success", "is-warning", "is-error");
+  if (stateClass) {
+    elements.saveStatus.classList.add(stateClass);
+  }
 }
 
 function updateHud() {
@@ -442,38 +592,10 @@ function renderHistory() {
     elements.historyList.appendChild(item);
   });
 
-  syncHistoryPanelHeight();
   window.requestAnimationFrame(() => {
     elements.historyList.scrollTop = elements.historyList.scrollHeight;
     updateHistoryOverflowState();
   });
-}
-
-function setupHistoryLayoutSync() {
-  if (typeof ResizeObserver !== "function") {
-    syncHistoryPanelHeight();
-    return;
-  }
-
-  historyLayoutObserver = new ResizeObserver(() => {
-    syncHistoryPanelHeight();
-  });
-
-  historyLayoutObserver.observe(elements.flagCard);
-  historyLayoutObserver.observe(elements.historyTitle);
-}
-
-function syncHistoryPanelHeight() {
-  const flagCardHeight = elements.flagCard.getBoundingClientRect().height;
-  const titleHeight = elements.historyTitle.getBoundingClientRect().height;
-  const panelStyles = window.getComputedStyle(elements.historyPanel);
-  const panelGap = Number.parseFloat(panelStyles.rowGap || panelStyles.gap || "0");
-  const availableListHeight = Math.max(flagCardHeight - titleHeight - panelGap, 0);
-
-  elements.historyPanel.style.height = `${flagCardHeight}px`;
-  elements.historyPanel.style.setProperty("--history-title-offset", `${titleHeight + panelGap}px`);
-  elements.historyList.style.maxHeight = `${availableListHeight}px`;
-  updateHistoryOverflowState();
 }
 
 function updateHistoryOverflowState() {
@@ -533,13 +655,4 @@ function shuffleArray(items) {
   }
 
   return copy;
-}
-
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
 }

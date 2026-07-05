@@ -142,9 +142,7 @@ The MVP is complete when all of the following are true:
 - Displays:
   - final score
   - correct answers
-  - incorrect answers
   - total answered questions
-  - accuracy percentage
 - Includes:
   - player name input
   - Save Score button
@@ -156,11 +154,7 @@ The MVP is complete when all of the following are true:
 - Leaderboard data is stored in `localStorage`.
 - Each record includes:
   - player name
-  - score
-  - correct answers
-  - total questions
-  - accuracy
-  - date
+  - correct answers / total questions
 - Only Top 10 scores are kept.
 - Sorting order is:
   - score descending
