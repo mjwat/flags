@@ -33,8 +33,11 @@ import {
 
 document.addEventListener("DOMContentLoaded", initializeApp);
 
+const PLAYER_NAME_STORAGE_KEY = "guess-the-flag-player-name";
+
 async function initializeApp() {
   bindEvents();
+  ensurePlayerName();
   setLeaderboardStatus("Loading leaderboard...");
 
   try {
@@ -59,6 +62,8 @@ async function initializeApp() {
 function bindEvents() {
   elements.startGameButton.addEventListener("click", startGame);
   elements.playAgainButton.addEventListener("click", startGame);
+  elements.playerNameInput.addEventListener("change", handlePlayerNameChange);
+  elements.timerDisplay.addEventListener("click", handleTimerTap);
 }
 
 function startGame() {
@@ -68,6 +73,7 @@ function startGame() {
   }
 
   state.playerName = getPlayerName();
+  state.lastSavedLeaderboardEntry = null;
   resetGameState(state);
   showScreen("game");
   updateGameHeader(state.score, state.questionNumber, state.timeLeft);
@@ -129,6 +135,20 @@ function handleAnswerSelection(selectedButton) {
   scheduleNextQuestion(state, showNextQuestion);
 }
 
+function handleTimerTap() {
+  if (!state.isGameActive) {
+    return;
+  }
+
+  if (state.timeLeft < 10) {
+    endGame();
+    return;
+  }
+
+  state.timeLeft -= 10;
+  updateGameHeader(state.score, state.questionNumber, state.timeLeft);
+}
+
 async function endGame() {
   if (!state.isGameActive) {
     return;
@@ -158,10 +178,15 @@ async function handleSaveScore() {
   try {
     const saveResult = await saveLeaderboard(leaderboardEntry);
     state.isScoreSaved = true;
+    state.lastSavedLeaderboardEntry = leaderboardEntry;
     state.leaderboardEntries = saveResult.entries;
     state.leaderboardSource = saveResult.source;
     renderLeaderboard(state.leaderboardEntries);
-    setSaveStatus(saveResult.statusMessage, saveResult.statusClass);
+    if (saveResult.statusClass === "is-success") {
+      setSaveStatus("");
+    } else {
+      setSaveStatus(saveResult.statusMessage, saveResult.statusClass);
+    }
   } catch (error) {
     console.error("Unable to save leaderboard entry.", error);
     setSaveStatus("Unable to save your score right now.", "is-error");
@@ -170,8 +195,73 @@ async function handleSaveScore() {
 
 function getPlayerName() {
   const trimmedName = elements.playerNameInput.value.trim();
-  const playerName = trimmedName || "Player";
+  const playerName = trimmedName || ensurePlayerName();
 
   elements.playerNameInput.value = playerName;
+  persistPlayerName(playerName);
+  state.playerName = playerName;
   return playerName;
+}
+
+function ensurePlayerName() {
+  const inputValue = elements.playerNameInput.value.trim();
+
+  if (inputValue) {
+    persistPlayerName(inputValue);
+    state.playerName = inputValue;
+    return inputValue;
+  }
+
+  const storedPlayerName = loadStoredPlayerName();
+
+  if (storedPlayerName) {
+    elements.playerNameInput.value = storedPlayerName;
+    state.playerName = storedPlayerName;
+    return storedPlayerName;
+  }
+
+  const defaultPlayerName = generateDefaultPlayerName();
+  elements.playerNameInput.value = defaultPlayerName;
+  state.playerName = defaultPlayerName;
+  persistPlayerName(defaultPlayerName);
+  return defaultPlayerName;
+}
+
+function generateDefaultPlayerName() {
+  const randomSuffix = Math.floor(Math.random() * 10000)
+    .toString()
+    .padStart(4, "0");
+
+  return `Player${randomSuffix}`;
+}
+
+function handlePlayerNameChange() {
+  const trimmedName = elements.playerNameInput.value.trim();
+
+  if (!trimmedName) {
+    ensurePlayerName();
+    return;
+  }
+
+  elements.playerNameInput.value = trimmedName;
+  persistPlayerName(trimmedName);
+  state.playerName = trimmedName;
+}
+
+function loadStoredPlayerName() {
+  try {
+    const storedPlayerName = localStorage.getItem(PLAYER_NAME_STORAGE_KEY)?.trim() ?? "";
+    return storedPlayerName || "";
+  } catch (error) {
+    console.warn("Unable to read the saved player name.", error);
+    return "";
+  }
+}
+
+function persistPlayerName(playerName) {
+  try {
+    localStorage.setItem(PLAYER_NAME_STORAGE_KEY, playerName);
+  } catch (error) {
+    console.warn("Unable to save the player name.", error);
+  }
 }

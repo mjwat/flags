@@ -1,5 +1,6 @@
-import { GAME_DURATION_SECONDS } from "./config.js";
+import { GAME_DURATION_SECONDS, MAX_LEADERBOARD_ENTRIES } from "./config.js";
 import { elements } from "./elements.js";
+import { state } from "./state.js";
 import { shuffleArray } from "./utils.js";
 
 const HERO_FLAG_ROTATION_MS = 2000;
@@ -77,8 +78,17 @@ export function disableAnswerButtons() {
 }
 
 export function renderLeaderboard(entries) {
-  renderLeaderboardList(elements.leaderboard.startList, elements.leaderboard.startEmpty, entries);
-  renderLeaderboardList(elements.leaderboard.resultsList, elements.leaderboard.resultsEmpty, entries);
+  renderLeaderboardList(
+    elements.leaderboard.startList,
+    elements.leaderboard.startEmpty,
+    entries.slice(0, MAX_LEADERBOARD_ENTRIES)
+  );
+  renderLeaderboardList(
+    elements.leaderboard.resultsList,
+    elements.leaderboard.resultsEmpty,
+    entries,
+    findMatchingSavedEntry(entries)
+  );
 }
 
 export function renderHistory(questionHistory) {
@@ -151,7 +161,7 @@ export function setCurrentFlag(flag) {
   elements.flagDisplay.setAttribute("aria-label", "Current flag question");
 }
 
-function renderLeaderboardList(listElement, emptyElement, entries) {
+function renderLeaderboardList(listElement, emptyElement, entries, highlightedEntry = null) {
   listElement.innerHTML = "";
 
   const hasEntries = entries.length > 0;
@@ -161,6 +171,10 @@ function renderLeaderboardList(listElement, emptyElement, entries) {
   entries.forEach((entry, index) => {
     const item = document.createElement("li");
     item.className = "leaderboard-entry";
+
+    if (highlightedEntry && areSameLeaderboardEntry(entry, highlightedEntry)) {
+      item.classList.add("is-recent");
+    }
 
     const topLine = document.createElement("div");
     topLine.className = "leaderboard-topline";
@@ -210,4 +224,23 @@ function updateTimeMeter(timeLeft) {
 function setHeroFlag(trackElement, flag) {
   trackElement.classList.remove("is-sliding");
   trackElement.innerHTML = `<span class="hero-flag-item">${flag}</span>`;
+}
+
+function findMatchingSavedEntry(entries) {
+  if (!entries.length) {
+    return null;
+  }
+
+  const savedEntry = state.lastSavedLeaderboardEntry;
+  return savedEntry && entries.some((entry) => areSameLeaderboardEntry(entry, savedEntry)) ? savedEntry : null;
+}
+
+function areSameLeaderboardEntry(left, right) {
+  return (
+    left.playerName === right.playerName &&
+    left.correctAnswers === right.correctAnswers &&
+    left.totalQuestions === right.totalQuestions &&
+    left.score === right.score &&
+    left.date === right.date
+  );
 }

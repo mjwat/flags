@@ -1,6 +1,5 @@
 import {
   LEADERBOARD_STORAGE_KEY,
-  MAX_LEADERBOARD_ENTRIES,
   YHUB_LEADERBOARD_ENDPOINT,
   YHUB_LEADERBOARD_FETCH_LIMIT,
 } from "./config.js";
@@ -14,7 +13,7 @@ export function loadLocalLeaderboardEntries() {
       return [];
     }
 
-    return limitLeaderboardEntries(parsedEntries.map(normalizeLeaderboardEntry).filter(Boolean));
+    return sortLeaderboardEntries(parsedEntries.map(normalizeLeaderboardEntry).filter(Boolean));
   } catch (error) {
     console.error("Unable to read leaderboard from localStorage.", error);
     return [];
@@ -25,7 +24,7 @@ export async function refreshLeaderboard() {
   try {
     const remoteEntries = await fetchRemoteLeaderboard();
     return {
-      entries: limitLeaderboardEntries(remoteEntries),
+      entries: sortLeaderboardEntries(remoteEntries),
       source: "global",
     };
   } catch (error) {
@@ -78,12 +77,8 @@ export function buildLeaderboardEntry(gameState, playerName) {
 
 function saveLocalLeaderboardEntry(entry) {
   const nextEntries = [...loadLocalLeaderboardEntries(), entry];
-  const sortedEntries = limitLeaderboardEntries(nextEntries);
+  const sortedEntries = sortLeaderboardEntries(nextEntries);
   localStorage.setItem(LEADERBOARD_STORAGE_KEY, JSON.stringify(sortedEntries));
-}
-
-function limitLeaderboardEntries(entries) {
-  return sortLeaderboardEntries(entries).slice(0, MAX_LEADERBOARD_ENTRIES);
 }
 
 function sortLeaderboardEntries(entries) {

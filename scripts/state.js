@@ -2,7 +2,7 @@ import { GAME_DURATION_SECONDS } from "./config.js";
 
 export const state = {
   countries: [],
-  playerName: "Player",
+  playerName: "",
   usedCountryCodes: new Set(),
   currentQuestion: null,
   questionHistory: [],
@@ -14,6 +14,7 @@ export const state = {
   isGameActive: false,
   isScoreSaved: false,
   leaderboardEntries: [],
+  lastSavedLeaderboardEntry: null,
   leaderboardSource: "loading",
   timerId: null,
   nextQuestionTimeoutId: null,
