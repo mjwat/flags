@@ -58,7 +58,7 @@ async function initializeApp() {
 
 function bindEvents() {
   elements.startGameButton.addEventListener("click", startGame);
-  elements.playAgainButton.addEventListener("click", showStartScreen);
+  elements.playAgainButton.addEventListener("click", startGame);
 }
 
 function startGame() {
@@ -174,11 +174,4 @@ function getPlayerName() {
 
   elements.playerNameInput.value = playerName;
   return playerName;
-}
-
-function showStartScreen() {
-  setSaveStatus("");
-  setFeedbackMessage("");
-  showScreen("start");
-  elements.playerNameInput.focus();
 }

@@ -59,13 +59,20 @@
   }
 
   .status-bar {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.45rem;
     padding: 0.65rem;
   }
 
+  .status-summary {
+    gap: 0.45rem;
+  }
+
   .status-chip {
     padding: 0.55rem 0.35rem;
+  }
+
+  .status-chip-time {
+    padding: 0;
   }
 
   .status-label {
@@ -77,7 +84,6 @@
   }
 
   .time-meter {
-    width: 44px;
     height: 6px;
   }
 
@@ -184,7 +190,7 @@
   }
 
   .prompt-text {
-    font-size: 0.82rem;
+    font-size: 1.2rem;
     letter-spacing: 0.11em;
   }
 
@@ -201,7 +207,7 @@
   }
 
   .answer-button {
-    min-height: 64px;
+    min-height: 120px;
     padding: 0.68rem 0.7rem;
     font-size: 1rem;
     font-weight: 600;

@@ -55,18 +55,22 @@
 
       <section class="screen" id="game-screen" aria-labelledby="game-title" hidden>
         <div class="status-bar panel">
-          <div class="status-chip">
-            <span class="status-label">Question</span>
-            <strong id="question-display">1</strong>
+          <div class="status-summary">
+            <div class="status-chip">
+              <span class="status-label">❓ Question</span>
+              <strong id="question-display">1</strong>
+            </div>
+            <div class="status-chip status-chip-time">
+              <span class="status-label">⏰ Time</span>
+              <strong id="timer-display">60s</strong>
+            </div>
+            <div class="status-chip">
+              <span class="status-label">⭐ Score</span>
+              <strong id="score-display">0</strong>
+            </div>
           </div>
-          <div class="status-chip">
-            <span class="status-label">Score</span>
-            <strong id="score-display">0</strong>
-          </div>
-          <div class="status-chip status-chip-time">
-            <span class="status-label">Time</span>
-            <strong id="timer-display">60s</strong>
-            <span class="time-meter" aria-hidden="true">
+          <div class="status-progress" aria-hidden="true">
+            <span class="time-meter">
               <span class="time-meter-fill" id="time-meter-fill"></span>
             </span>
           </div>

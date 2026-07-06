@@ -89,10 +89,16 @@
 
 .status-bar {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 0.9rem;
   padding: 1rem;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(244, 248, 252, 0.72));
+}
+
+.status-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: center;
 }
 
 .status-chip {
@@ -119,8 +125,15 @@
   letter-spacing: -0.03em;
 }
 
-.status-chip-time strong {
-  margin-top: 0.35rem;
+.status-chip-time {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.status-progress {
+  padding: 0 0.15rem;
 }
 
 .game-panel {
