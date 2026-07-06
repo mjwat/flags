@@ -47,16 +47,6 @@
     margin-bottom: 0.85rem;
   }
 
-  .flag-marquee {
-    margin-bottom: 1rem;
-    padding: 0.55rem 0;
-  }
-
-  .flag-marquee-item {
-    min-width: 2rem;
-    font-size: 1.45rem;
-  }
-
   .primary-button,
   .secondary-button {
     padding: 0.82rem 1rem;

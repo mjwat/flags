@@ -16,7 +16,7 @@ export const elements = {
   historyPanel: document.querySelector(".history-panel"),
   historyList: document.getElementById("history-list"),
   finalCorrectAnswered: document.getElementById("final-correct-answered"),
-  flagMarqueeTrack: document.getElementById("flag-marquee-track"),
+  heroFlagTrack: document.getElementById("hero-flag-track"),
   playerNameInput: document.getElementById("player-name"),
   saveStatus: document.getElementById("save-status"),
   leaderboard: {

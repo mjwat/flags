@@ -2,6 +2,14 @@ import { GAME_DURATION_SECONDS } from "./config.js";
 import { elements } from "./elements.js";
 import { shuffleArray } from "./utils.js";
 
+const HERO_FLAG_ROTATION_MS = 2000;
+const HERO_FLAG_SLIDE_MS = 420;
+
+let heroFlagIntervalId = null;
+let heroFlagAnimationTimeoutId = null;
+let heroFlags = [];
+let heroFlagIndex = 0;
+
 export function showScreen(activeScreenName) {
   Object.entries(elements.screens).forEach(([screenName, screenElement]) => {
     const isActive = screenName === activeScreenName;
@@ -10,13 +18,37 @@ export function showScreen(activeScreenName) {
   });
 }
 
-export function renderFlagMarquee(countries) {
-  const flags = shuffleArray(countries.map((country) => country.flag)).slice(0, 18);
-  const repeatedFlags = [...flags, ...flags];
+export function renderHeroFlagRotator(countries) {
+  heroFlags = shuffleArray([...new Set(countries.map((country) => country.flag))]);
+  heroFlagIndex = 0;
 
-  elements.flagMarqueeTrack.innerHTML = repeatedFlags
-    .map((flag, index) => `<span class="flag-marquee-item" style="--item-delay:${index * 40}ms">${flag}</span>`)
-    .join("");
+  window.clearInterval(heroFlagIntervalId);
+  window.clearTimeout(heroFlagAnimationTimeoutId);
+
+  if (!heroFlags.length) {
+    elements.heroFlagTrack.innerHTML = '<span class="hero-flag-item">🏳️</span>';
+    return;
+  }
+
+  setHeroFlag(elements.heroFlagTrack, heroFlags[heroFlagIndex]);
+
+  if (heroFlags.length === 1) {
+    return;
+  }
+
+  heroFlagIntervalId = window.setInterval(() => {
+    const nextFlag = heroFlags[(heroFlagIndex + 1) % heroFlags.length];
+    elements.heroFlagTrack.innerHTML = `
+      <span class="hero-flag-item">${heroFlags[heroFlagIndex]}</span>
+      <span class="hero-flag-item">${nextFlag}</span>
+    `;
+    elements.heroFlagTrack.classList.add("is-sliding");
+
+    heroFlagAnimationTimeoutId = window.setTimeout(() => {
+      heroFlagIndex = (heroFlagIndex + 1) % heroFlags.length;
+      setHeroFlag(elements.heroFlagTrack, heroFlags[heroFlagIndex]);
+    }, HERO_FLAG_SLIDE_MS);
+  }, HERO_FLAG_ROTATION_MS);
 }
 
 export function renderAnswerButtons(answers, onSelectAnswer) {
@@ -173,4 +205,9 @@ function updateTimeMeter(timeLeft) {
     hue - 18,
     0
   )} 82% 58%))`;
+}
+
+function setHeroFlag(trackElement, flag) {
+  trackElement.classList.remove("is-sliding");
+  trackElement.innerHTML = `<span class="hero-flag-item">${flag}</span>`;
 }

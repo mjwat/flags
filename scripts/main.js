@@ -19,7 +19,7 @@ import {
   disableAnswerButtons,
   getAnswerButtons,
   renderAnswerButtons,
-  renderFlagMarquee,
+  renderHeroFlagRotator,
   renderHistory,
   renderLeaderboard,
   renderResults,
@@ -43,7 +43,7 @@ async function initializeApp() {
     state.leaderboardEntries = leaderboardResult.entries;
     state.leaderboardSource = leaderboardResult.source;
 
-    renderFlagMarquee(state.countries);
+    renderHeroFlagRotator(state.countries);
     renderLeaderboard(state.leaderboardEntries);
     setLeaderboardStatus("");
     setFeedbackMessage("");

@@ -14,10 +14,16 @@
     <main class="app-shell">
       <section class="screen screen-active" id="start-screen" aria-labelledby="app-title">
         <div class="panel hero-panel">
-          <div class="flag-marquee" aria-hidden="true">
-            <div class="flag-marquee-track" id="flag-marquee-track"></div>
-          </div>
-          <h1 id="app-title">Guess the Flag</h1>
+          <h1 id="app-title" class="hero-title">
+            Guess the
+            <br />
+            Flag
+            <span class="hero-flag-rotator" aria-hidden="true">
+              <span class="hero-flag-track" id="hero-flag-track">
+                <span class="hero-flag-item">🏳️</span>
+              </span>
+            </span>
+          </h1>
           <p class="hero-copy">
             Identify as many countries as you can in 60 seconds. One flag, four choices, no
             distractions.
