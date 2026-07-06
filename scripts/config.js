@@ -1,0 +1,8 @@
+export const GAME_DURATION_SECONDS = 60;
+export const ANSWERS_PER_QUESTION = 4;
+export const ANSWER_FEEDBACK_DELAY_MS = 900;
+export const MAX_LEADERBOARD_ENTRIES = 10;
+export const LEADERBOARD_STORAGE_KEY = "guess-the-flag-leaderboard";
+export const YHUB_LEADERBOARD_ENTITY = "leaderboard_scores";
+export const YHUB_LEADERBOARD_ENDPOINT = `/api/${YHUB_LEADERBOARD_ENTITY}`;
+export const YHUB_LEADERBOARD_FETCH_LIMIT = 100;

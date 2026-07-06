@@ -1,0 +1,254 @@
+@media (min-width: 768px) {
+  .screen {
+    grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.82fr);
+  }
+
+  #start-screen,
+  #results-screen,
+  #game-screen {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-panel,
+  .results-panel {
+    min-height: 100%;
+  }
+}
+
+@media (max-width: 767px) {
+  #start-screen,
+  #results-screen {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .results-panel,
+  .leaderboard-panel,
+  .game-panel {
+    padding: 0.85rem;
+  }
+
+  .section-heading {
+    margin-bottom: 0.1rem;
+  }
+
+  h2 {
+    font-size: clamp(1.35rem, 5vw, 1.85rem);
+  }
+
+  .hero-copy,
+  .leaderboard-status,
+  .empty-state,
+  .save-status {
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+
+  .hero-copy {
+    margin-bottom: 0.85rem;
+  }
+
+  .flag-marquee {
+    margin-bottom: 1rem;
+    padding: 0.55rem 0;
+  }
+
+  .flag-marquee-item {
+    min-width: 2rem;
+    font-size: 1.45rem;
+  }
+
+  .primary-button,
+  .secondary-button {
+    padding: 0.82rem 1rem;
+    font-size: 0.95rem;
+  }
+
+  .flag-card {
+    min-height: 168px;
+    padding: 0.7rem;
+  }
+
+  .status-bar {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.45rem;
+    padding: 0.65rem;
+  }
+
+  .status-chip {
+    padding: 0.55rem 0.35rem;
+  }
+
+  .status-label {
+    font-size: 0.68rem;
+  }
+
+  .status-chip strong {
+    font-size: 1.08rem;
+  }
+
+  .time-meter {
+    width: 44px;
+    height: 6px;
+  }
+
+  .game-panel {
+    gap: 0.7rem;
+  }
+
+  .prompt-text {
+    font-size: 0.9rem;
+  }
+
+  .answers-grid,
+  .results-grid {
+    gap: 0.7rem;
+  }
+
+  .answer-button {
+    min-height: 62px;
+    padding: 0.78rem 0.8rem;
+    font-size: 0.92rem;
+  }
+
+  .answer-button .answer-state {
+    font-size: 0.72rem;
+  }
+
+  .leaderboard-entry {
+    padding: 0.65rem 0.75rem;
+  }
+
+  .leaderboard-topline {
+    gap: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .leaderboard-rank {
+    min-width: 1.3rem;
+  }
+
+  .results-grid {
+    margin: 1rem 0 1.1rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .result-card {
+    padding: 0.85rem;
+  }
+
+  .result-label {
+    font-size: 0.72rem;
+  }
+
+  .save-score-form {
+    gap: 0.55rem;
+  }
+
+  .save-row {
+    gap: 0.5rem;
+  }
+
+  input[type="text"] {
+    padding: 0.82rem 0.9rem;
+    font-size: 0.95rem;
+  }
+
+  .result-card strong {
+    font-size: 1.7rem;
+  }
+}
+
+@media (max-width: 540px) {
+  h1 {
+    max-width: none;
+    margin-bottom: 0.55rem;
+    font-size: clamp(2rem, 13vw, 3.1rem);
+    line-height: 0.94;
+  }
+
+  .eyebrow,
+  .prompt-text,
+  .result-label,
+  .status-label {
+    letter-spacing: 0.08em;
+  }
+
+  .results-header {
+    align-items: flex-start;
+    gap: 0.65rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .eyebrow {
+    padding: 0.28rem 0.55rem;
+    font-size: 0.62rem;
+  }
+
+  .hero-copy {
+    font-size: 0.88rem;
+  }
+
+  .history-panel {
+    padding: 0.75rem 0.8rem;
+  }
+
+  .history-title {
+    font-size: 0.72rem;
+  }
+
+  .prompt-text {
+    font-size: 0.82rem;
+    letter-spacing: 0.11em;
+  }
+
+  .flag-display {
+    font-size: 12rem;
+  }
+
+  .history-item {
+    gap: 0.25rem;
+  }
+
+  .history-summary {
+    font-size: 0.7rem;
+  }
+
+  .answer-button {
+    min-height: 64px;
+    padding: 0.68rem 0.7rem;
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .save-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  #save-score-button {
+    min-width: 72px;
+  }
+
+  .results-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .leaderboard-topline {
+    gap: 0.55rem;
+  }
+
+  .leaderboard-score {
+    margin-left: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
