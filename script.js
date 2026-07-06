@@ -3,6 +3,9 @@ const ANSWERS_PER_QUESTION = 4;
 const ANSWER_FEEDBACK_DELAY_MS = 900;
 const MAX_LEADERBOARD_ENTRIES = 10;
 const LEADERBOARD_STORAGE_KEY = "guess-the-flag-leaderboard";
+const YHUB_LEADERBOARD_ENTITY = "leaderboard_scores";
+const YHUB_LEADERBOARD_ENDPOINT = `/api/${YHUB_LEADERBOARD_ENTITY}`;
+const YHUB_LEADERBOARD_FETCH_LIMIT = 100;
 
 const state = {
   countries: [],
@@ -17,6 +20,7 @@ const state = {
   isGameActive: false,
   isScoreSaved: false,
   leaderboardEntries: [],
+  leaderboardSource: "loading",
   timerId: null,
   nextQuestionTimeoutId: null,
 };
@@ -61,12 +65,10 @@ async function initializeApp() {
   setLeaderboardStatus("Loading leaderboard...");
 
   try {
-    state.countries = await loadCountries();
-    state.leaderboardEntries = loadLeaderboardEntries();
+    const [countries] = await Promise.all([loadCountries(), refreshLeaderboard()]);
+    state.countries = countries;
 
     renderFlagMarquee();
-    renderLeaderboard();
-    setLeaderboardStatus("");
     setFeedbackMessage("");
     elements.startGameButton.disabled = false;
   } catch (error) {
@@ -353,18 +355,8 @@ function handleSaveScore(event) {
 
   const leaderboardEntry = buildLeaderboardEntry();
   elements.saveScoreButton.disabled = true;
-
-  try {
-    saveLeaderboardEntry(leaderboardEntry);
-    state.isScoreSaved = true;
-    state.leaderboardEntries = loadLeaderboardEntries();
-    renderLeaderboard();
-    setSaveStatus("Score saved to this browser.", "is-success");
-  } catch (error) {
-    console.error("Unable to save leaderboard entry.", error);
-    elements.saveScoreButton.disabled = false;
-    setSaveStatus("Unable to save your score right now.", "is-error");
-  }
+  setSaveStatus("Saving score...");
+  saveLeaderboard(leaderboardEntry);
 }
 
 function buildLeaderboardEntry() {
@@ -413,6 +405,30 @@ function saveLeaderboardEntry(entry) {
   localStorage.setItem(LEADERBOARD_STORAGE_KEY, JSON.stringify(sortedEntries));
 }
 
+async function saveLeaderboard(entry) {
+  try {
+    await saveRemoteLeaderboardEntry(entry);
+    state.isScoreSaved = true;
+    setSaveStatus("Saved to the global leaderboard.", "is-success");
+    await refreshLeaderboard();
+    return;
+  } catch (error) {
+    console.warn("Unable to save to the Yhub leaderboard. Falling back to local storage.", error);
+  }
+
+  try {
+    saveLeaderboardEntry(entry);
+    state.isScoreSaved = true;
+    state.leaderboardEntries = loadLeaderboardEntries();
+    renderLeaderboard();
+    setSaveStatus("Global leaderboard unavailable. Saved locally for this browser.", "is-warning");
+  } catch (error) {
+    console.error("Unable to save leaderboard entry.", error);
+    elements.saveScoreButton.disabled = false;
+    setSaveStatus("Unable to save your score right now.", "is-error");
+  }
+}
+
 function sortLeaderboardEntries(entries) {
   return [...entries].sort((left, right) => {
     if (right.score !== left.score) {
@@ -427,17 +443,88 @@ function sortLeaderboardEntries(entries) {
   });
 }
 
+async function refreshLeaderboard() {
+  try {
+    const remoteEntries = await fetchRemoteLeaderboard();
+    state.leaderboardEntries = sortLeaderboardEntries(remoteEntries).slice(0, MAX_LEADERBOARD_ENTRIES);
+    state.leaderboardSource = "global";
+    setLeaderboardStatus("");
+  } catch (error) {
+    console.warn("Unable to load the Yhub leaderboard. Falling back to local storage.", error);
+    state.leaderboardEntries = loadLeaderboardEntries();
+    state.leaderboardSource = "local";
+    setLeaderboardStatus("");
+  }
+
+  renderLeaderboard();
+}
+
+async function fetchRemoteLeaderboard() {
+  const url = new URL(YHUB_LEADERBOARD_ENDPOINT, window.location.origin);
+  url.searchParams.set("limit", String(YHUB_LEADERBOARD_FETCH_LIMIT));
+
+  const response = await fetch(url.toString(), {
+    cache: "no-store",
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Leaderboard request failed with status ${response.status}.`);
+  }
+
+  const payload = await response.json();
+  return extractLeaderboardEntries(payload).map(normalizeLeaderboardEntry).filter(Boolean);
+}
+
+async function saveRemoteLeaderboardEntry(entry) {
+  const response = await fetch(YHUB_LEADERBOARD_ENDPOINT, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      player_name: entry.playerName,
+      score: entry.score,
+      correct_answers: entry.correctAnswers,
+      total_questions: entry.totalQuestions,
+      accuracy: entry.accuracy,
+      played_at: entry.date,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Leaderboard save failed with status ${response.status}.`);
+  }
+
+  return response.json().catch(() => null);
+}
+
+function extractLeaderboardEntries(payload) {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  if (payload && Array.isArray(payload.data)) {
+    return payload.data;
+  }
+
+  return [];
+}
+
 function normalizeLeaderboardEntry(entry) {
   if (!entry || typeof entry !== "object") {
     return null;
   }
 
-  const playerName = String(entry.playerName ?? "").trim();
+  const playerName = String(entry.playerName ?? entry.player_name ?? "").trim();
   const score = Number(entry.score);
-  const correctAnswers = Number(entry.correctAnswers);
-  const totalQuestions = Number(entry.totalQuestions);
+  const correctAnswers = Number(entry.correctAnswers ?? entry.correct_answers);
+  const totalQuestions = Number(entry.totalQuestions ?? entry.total_questions);
   const accuracy = Number(entry.accuracy);
-  const date = String(entry.date ?? new Date().toISOString());
+  const date = String(entry.date ?? entry.played_at ?? new Date().toISOString());
 
   if (!playerName || Number.isNaN(score) || Number.isNaN(correctAnswers) || Number.isNaN(totalQuestions)) {
     return null;

@@ -31,7 +31,7 @@ http://localhost:8000
 - Randomized four-choice flag questions
 - Immediate answer feedback
 - Results screen with stats
-- Browser-local Top 10 leaderboard stored in `localStorage`
+- Yhub-backed Top 10 leaderboard with `localStorage` fallback
 - Responsive layout for mobile, tablet, and desktop
 
 ## Data
