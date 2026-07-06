@@ -2,6 +2,7 @@ import { GAME_DURATION_SECONDS } from "./config.js";
 
 export const state = {
   countries: [],
+  playerName: "Player",
   usedCountryCodes: new Set(),
   currentQuestion: null,
   questionHistory: [],

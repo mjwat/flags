@@ -380,8 +380,13 @@ input:focus-visible {
   letter-spacing: -0.04em;
 }
 
-.save-score-form label {
-  font-weight: 700;
+.field-label {
+  display: block;
+  font-size: 0.94rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-text);
 }
 
 input[type="text"] {
@@ -413,6 +418,7 @@ input[type="text"]:focus-visible {
 .save-status {
   min-height: 1.35rem;
   margin-bottom: 0;
+  text-align: center;
 }
 
 .save-status.is-success {
@@ -425,4 +431,8 @@ input[type="text"]:focus-visible {
 
 .save-status.is-error {
   color: var(--danger-color);
+}
+
+.results-save-status:empty {
+  min-height: 0;
 }

@@ -140,12 +140,9 @@
     font-size: 0.72rem;
   }
 
-  .save-score-form {
-    gap: 0.55rem;
-  }
-
-  .save-row {
+  .start-form {
     gap: 0.5rem;
+    margin-bottom: 1rem;
   }
 
   input[type="text"] {
@@ -219,14 +216,6 @@
     font-size: 1rem;
     font-weight: 600;
     text-align: center;
-  }
-
-  .save-row {
-    grid-template-columns: minmax(0, 1fr) auto;
-  }
-
-  #save-score-button {
-    min-width: 72px;
   }
 
   .results-grid {

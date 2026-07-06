@@ -82,7 +82,6 @@ export function renderHistory(questionHistory) {
 
 export function renderResults(correctAnswers, totalAnswered) {
   elements.finalCorrectAnswered.textContent = `${correctAnswers} / ${totalAnswered}`;
-  elements.saveScoreButton.disabled = false;
 }
 
 export function updateGameHeader(score, questionNumber, timeLeft) {

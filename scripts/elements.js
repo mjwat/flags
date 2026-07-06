@@ -17,9 +17,7 @@ export const elements = {
   historyList: document.getElementById("history-list"),
   finalCorrectAnswered: document.getElementById("final-correct-answered"),
   flagMarqueeTrack: document.getElementById("flag-marquee-track"),
-  saveScoreForm: document.getElementById("save-score-form"),
   playerNameInput: document.getElementById("player-name"),
-  saveScoreButton: document.getElementById("save-score-button"),
   saveStatus: document.getElementById("save-status"),
   leaderboard: {
     startList: document.getElementById("leaderboard-list"),

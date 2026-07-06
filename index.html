@@ -22,6 +22,18 @@
             Identify as many countries as you can in 60 seconds. One flag, four choices, no
             distractions.
           </p>
+          <div class="start-form">
+            <label class="field-label" for="player-name">Enter Your Name</label>
+            <input
+              id="player-name"
+              name="playerName"
+              type="text"
+              maxlength="20"
+              autocomplete="nickname"
+              placeholder="Player123"
+              value="Player"
+            />
+          </div>
           <button class="primary-button" id="start-game-button" type="button" disabled>Start Game</button>
         </div>
 
@@ -85,26 +97,10 @@
             <ol id="history-list" class="history-list" aria-live="polite"></ol>
           </aside>
 
-          <form id="save-score-form" class="save-score-form">
-            <label for="player-name">Name</label>
-            <div class="save-row">
-              <input
-                id="player-name"
-                name="playerName"
-                type="text"
-                maxlength="20"
-                autocomplete="nickname"
-                placeholder="Enter your name"
-                value="Player"
-              />
-              <button class="primary-button" type="submit" id="save-score-button">Save</button>
-            </div>
-            <p id="save-status" class="save-status" aria-live="polite"></p>
-          </form>
-
           <div class="results-actions">
             <button class="secondary-button" id="play-again-button" type="button">Play Again</button>
           </div>
+          <p id="save-status" class="save-status results-save-status" aria-live="polite"></p>
         </div>
 
         <div class="panel leaderboard-panel">
@@ -114,7 +110,7 @@
           <p id="results-leaderboard-status" class="leaderboard-status" aria-live="polite">
             Loading leaderboard...
           </p>
-          <div id="results-leaderboard-empty" class="empty-state">No scores yet. Save your result.</div>
+          <div id="results-leaderboard-empty" class="empty-state">No scores yet. Finish a round to set the pace.</div>
           <ol id="results-leaderboard-list" class="leaderboard-list" aria-live="polite"></ol>
         </div>
       </section>

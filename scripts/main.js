@@ -58,8 +58,7 @@ async function initializeApp() {
 
 function bindEvents() {
   elements.startGameButton.addEventListener("click", startGame);
-  elements.playAgainButton.addEventListener("click", startGame);
-  elements.saveScoreForm.addEventListener("submit", handleSaveScore);
+  elements.playAgainButton.addEventListener("click", showStartScreen);
 }
 
 function startGame() {
@@ -68,14 +67,13 @@ function startGame() {
     return;
   }
 
+  state.playerName = getPlayerName();
   resetGameState(state);
   showScreen("game");
   updateGameHeader(state.score, state.questionNumber, state.timeLeft);
   setFeedbackMessage("");
   setSaveStatus("");
   renderHistory(state.questionHistory);
-  elements.playerNameInput.value = "Player";
-  elements.saveScoreButton.disabled = false;
 
   startTimer(
     state,
@@ -131,7 +129,7 @@ function handleAnswerSelection(selectedButton) {
   scheduleNextQuestion(state, showNextQuestion);
 }
 
-function endGame() {
+async function endGame() {
   if (!state.isGameActive) {
     return;
   }
@@ -143,28 +141,18 @@ function endGame() {
   clearNextQuestionTimeout(state);
   disableAnswerButtons();
   renderResults(state.correctAnswers, getTotalAnsweredQuestions(state));
-  renderLeaderboard(state.leaderboardEntries);
-  setSaveStatus("");
   showScreen("results");
+  renderLeaderboard(state.leaderboardEntries);
+  await handleSaveScore();
 }
 
-async function handleSaveScore(event) {
-  event.preventDefault();
-
+async function handleSaveScore() {
   if (state.isScoreSaved) {
     setSaveStatus("Score already saved for this round.");
     return;
   }
 
-  const trimmedName = elements.playerNameInput.value.trim();
-  const playerName = trimmedName || "Player";
-
-  if (!trimmedName) {
-    elements.playerNameInput.value = playerName;
-  }
-
-  const leaderboardEntry = buildLeaderboardEntry(state, playerName);
-  elements.saveScoreButton.disabled = true;
+  const leaderboardEntry = buildLeaderboardEntry(state, state.playerName);
   setSaveStatus("Saving score...");
 
   try {
@@ -176,7 +164,21 @@ async function handleSaveScore(event) {
     setSaveStatus(saveResult.statusMessage, saveResult.statusClass);
   } catch (error) {
     console.error("Unable to save leaderboard entry.", error);
-    elements.saveScoreButton.disabled = false;
     setSaveStatus("Unable to save your score right now.", "is-error");
   }
+}
+
+function getPlayerName() {
+  const trimmedName = elements.playerNameInput.value.trim();
+  const playerName = trimmedName || "Player";
+
+  elements.playerNameInput.value = playerName;
+  return playerName;
+}
+
+function showStartScreen() {
+  setSaveStatus("");
+  setFeedbackMessage("");
+  showScreen("start");
+  elements.playerNameInput.focus();
 }
