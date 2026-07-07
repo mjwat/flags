@@ -13,7 +13,11 @@ import {
   startTimer,
   updateLastHistoryEntry,
 } from "./game.js";
-import { buildLeaderboardEntry, refreshLeaderboard, saveLeaderboard } from "./leaderboard.js";
+import {
+  buildLeaderboardEntry,
+  refreshStartLeaderboard,
+  saveLeaderboard,
+} from "./leaderboard.js";
 import { state } from "./state.js";
 import {
   disableAnswerButtons,
@@ -41,13 +45,13 @@ async function initializeApp() {
   setLeaderboardStatus("Loading leaderboard...");
 
   try {
-    const [countries, leaderboardResult] = await Promise.all([loadCountries(), refreshLeaderboard()]);
+    const [countries, leaderboardResult] = await Promise.all([loadCountries(), refreshStartLeaderboard()]);
     state.countries = countries;
-    state.leaderboardEntries = leaderboardResult.entries;
+    state.startLeaderboardEntries = leaderboardResult.entries;
     state.leaderboardSource = leaderboardResult.source;
 
     renderHeroFlagRotator(state.countries);
-    renderLeaderboard(state.leaderboardEntries);
+    renderLeaderboard(state.startLeaderboardEntries, state.resultsLeaderboardEntries);
     setLeaderboardStatus("");
     setFeedbackMessage("");
     elements.startGameButton.disabled = false;
@@ -162,7 +166,7 @@ async function endGame() {
   disableAnswerButtons();
   renderResults(state.correctAnswers, getTotalAnsweredQuestions(state));
   showScreen("results");
-  renderLeaderboard(state.leaderboardEntries);
+  renderLeaderboard(state.startLeaderboardEntries, state.resultsLeaderboardEntries);
   await handleSaveScore();
 }
 
@@ -179,9 +183,10 @@ async function handleSaveScore() {
     const saveResult = await saveLeaderboard(leaderboardEntry);
     state.isScoreSaved = true;
     state.lastSavedLeaderboardEntry = leaderboardEntry;
-    state.leaderboardEntries = saveResult.entries;
+    state.startLeaderboardEntries = saveResult.startEntries;
+    state.resultsLeaderboardEntries = saveResult.resultsEntries;
     state.leaderboardSource = saveResult.source;
-    renderLeaderboard(state.leaderboardEntries);
+    renderLeaderboard(state.startLeaderboardEntries, state.resultsLeaderboardEntries);
     if (saveResult.statusClass === "is-success") {
       setSaveStatus("");
     } else {

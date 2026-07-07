@@ -1,4 +1,4 @@
-import { GAME_DURATION_SECONDS, MAX_LEADERBOARD_ENTRIES } from "./config.js";
+import { GAME_DURATION_SECONDS } from "./config.js";
 import { elements } from "./elements.js";
 import { getBestWeeklyLeaderboardEntry } from "./leaderboard.js";
 import { state } from "./state.js";
@@ -78,32 +78,31 @@ export function disableAnswerButtons() {
   });
 }
 
-export function renderLeaderboard(entries) {
-  const topEntries = entries.slice(0, MAX_LEADERBOARD_ENTRIES);
-  const bestWeeklyEntry = getBestWeeklyLeaderboardEntry(entries);
+export function renderLeaderboard(startEntries, resultsEntries) {
+  const bestWeeklyEntry = getBestWeeklyLeaderboardEntry(resultsEntries);
   renderFeaturedLeaderboardEntry(
     elements.leaderboard.startFeatured,
     elements.leaderboard.startFeaturedEntry,
     bestWeeklyEntry
   );
-  toggleLeaderboardGroup(elements.leaderboard.startGroup, topEntries.length > 0);
+  toggleLeaderboardGroup(elements.leaderboard.startGroup, startEntries.length > 0);
   renderLeaderboardList(
     elements.leaderboard.startList,
     elements.leaderboard.startEmpty,
-    topEntries
+    startEntries
   );
-  const highlightedResultsEntry = findMatchingSavedEntry(entries);
+  const highlightedResultsEntry = findMatchingSavedEntry(resultsEntries);
   renderFeaturedLeaderboardEntry(
     elements.leaderboard.resultsFeatured,
     elements.leaderboard.resultsFeaturedEntry,
     bestWeeklyEntry,
     highlightedResultsEntry
   );
-  toggleLeaderboardGroup(elements.leaderboard.resultsGroup, topEntries.length > 0);
+  toggleLeaderboardGroup(elements.leaderboard.resultsGroup, resultsEntries.length > 0);
   renderLeaderboardList(
     elements.leaderboard.resultsList,
     elements.leaderboard.resultsEmpty,
-    topEntries,
+    resultsEntries,
     highlightedResultsEntry
   );
   scrollLeaderboardEntryIntoView(elements.leaderboard.resultsList, highlightedResultsEntry);

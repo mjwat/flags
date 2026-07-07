@@ -1,8 +1,41 @@
 import {
   LEADERBOARD_STORAGE_KEY,
   YHUB_LEADERBOARD_ENDPOINT,
-  YHUB_LEADERBOARD_FETCH_LIMIT,
+  MAX_RESULTS_LEADERBOARD_ENTRIES,
+  MAX_START_LEADERBOARD_ENTRIES,
 } from "./config.js";
+
+export async function refreshStartLeaderboard() {
+  try {
+    const remoteEntries = await fetchRemoteLeaderboard(MAX_START_LEADERBOARD_ENTRIES);
+    return {
+      entries: sortLeaderboardEntries(remoteEntries),
+      source: "global",
+    };
+  } catch (error) {
+    console.warn("Unable to load the Yhub start leaderboard. Falling back to local storage.", error);
+    return {
+      entries: loadLocalLeaderboardEntries().slice(0, MAX_START_LEADERBOARD_ENTRIES),
+      source: "local",
+    };
+  }
+}
+
+export async function refreshResultsLeaderboard() {
+  try {
+    const remoteEntries = await fetchRemoteLeaderboard(MAX_RESULTS_LEADERBOARD_ENTRIES);
+    return {
+      entries: sortLeaderboardEntries(remoteEntries),
+      source: "global",
+    };
+  } catch (error) {
+    console.warn("Unable to load the Yhub results leaderboard. Falling back to local storage.", error);
+    return {
+      entries: loadLocalLeaderboardEntries().slice(0, MAX_RESULTS_LEADERBOARD_ENTRIES),
+      source: "local",
+    };
+  }
+}
 
 export function loadLocalLeaderboardEntries() {
   try {
@@ -22,15 +55,21 @@ export function loadLocalLeaderboardEntries() {
 
 export async function refreshLeaderboard() {
   try {
-    const remoteEntries = await fetchRemoteLeaderboard();
+    const [startEntries, resultsEntries] = await Promise.all([
+      refreshStartLeaderboard(),
+      refreshResultsLeaderboard(),
+    ]);
     return {
-      entries: sortLeaderboardEntries(remoteEntries),
+      startEntries: startEntries.entries,
+      resultsEntries: resultsEntries.entries,
       source: "global",
     };
   } catch (error) {
     console.warn("Unable to load the Yhub leaderboard. Falling back to local storage.", error);
+    const localEntries = loadLocalLeaderboardEntries();
     return {
-      entries: loadLocalLeaderboardEntries(),
+      startEntries: localEntries.slice(0, MAX_START_LEADERBOARD_ENTRIES),
+      resultsEntries: localEntries.slice(0, MAX_RESULTS_LEADERBOARD_ENTRIES),
       source: "local",
     };
   }
@@ -39,10 +78,14 @@ export async function refreshLeaderboard() {
 export async function saveLeaderboard(entry) {
   try {
     await saveRemoteLeaderboardEntry(entry);
-    const refreshed = await refreshLeaderboard();
+    const [startLeaderboard, resultsLeaderboard] = await Promise.all([
+      refreshStartLeaderboard(),
+      refreshResultsLeaderboard(),
+    ]);
 
     return {
-      entries: refreshed.entries,
+      startEntries: startLeaderboard.entries,
+      resultsEntries: resultsLeaderboard.entries,
       source: "global",
       statusMessage: "Saved to the global leaderboard.",
       statusClass: "is-success",
@@ -54,7 +97,8 @@ export async function saveLeaderboard(entry) {
   saveLocalLeaderboardEntry(entry);
 
   return {
-    entries: loadLocalLeaderboardEntries(),
+    startEntries: loadLocalLeaderboardEntries().slice(0, MAX_START_LEADERBOARD_ENTRIES),
+    resultsEntries: loadLocalLeaderboardEntries().slice(0, MAX_RESULTS_LEADERBOARD_ENTRIES),
     source: "local",
     statusMessage: "Global leaderboard unavailable. Saved locally for this browser.",
     statusClass: "is-warning",
@@ -108,9 +152,9 @@ function sortLeaderboardEntries(entries) {
   });
 }
 
-async function fetchRemoteLeaderboard() {
+async function fetchRemoteLeaderboard(limit) {
   const url = new URL(YHUB_LEADERBOARD_ENDPOINT, window.location.origin);
-  url.searchParams.set("limit", String(YHUB_LEADERBOARD_FETCH_LIMIT));
+  url.searchParams.set("limit", String(limit));
 
   const response = await fetch(url.toString(), {
     cache: "no-store",
