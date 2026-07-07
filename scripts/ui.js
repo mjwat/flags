@@ -1,5 +1,6 @@
 import { GAME_DURATION_SECONDS, MAX_LEADERBOARD_ENTRIES } from "./config.js";
 import { elements } from "./elements.js";
+import { getBestWeeklyLeaderboardEntry } from "./leaderboard.js";
 import { state } from "./state.js";
 import { shuffleArray } from "./utils.js";
 
@@ -78,16 +79,31 @@ export function disableAnswerButtons() {
 }
 
 export function renderLeaderboard(entries) {
+  const topEntries = entries.slice(0, MAX_LEADERBOARD_ENTRIES);
+  const bestWeeklyEntry = getBestWeeklyLeaderboardEntry(entries);
+  renderFeaturedLeaderboardEntry(
+    elements.leaderboard.startFeatured,
+    elements.leaderboard.startFeaturedEntry,
+    bestWeeklyEntry
+  );
+  toggleLeaderboardGroup(elements.leaderboard.startGroup, topEntries.length > 0);
   renderLeaderboardList(
     elements.leaderboard.startList,
     elements.leaderboard.startEmpty,
-    entries.slice(0, MAX_LEADERBOARD_ENTRIES)
+    topEntries
   );
   const highlightedResultsEntry = findMatchingSavedEntry(entries);
+  renderFeaturedLeaderboardEntry(
+    elements.leaderboard.resultsFeatured,
+    elements.leaderboard.resultsFeaturedEntry,
+    bestWeeklyEntry,
+    highlightedResultsEntry
+  );
+  toggleLeaderboardGroup(elements.leaderboard.resultsGroup, topEntries.length > 0);
   renderLeaderboardList(
     elements.leaderboard.resultsList,
     elements.leaderboard.resultsEmpty,
-    entries,
+    topEntries,
     highlightedResultsEntry
   );
   scrollLeaderboardEntryIntoView(elements.leaderboard.resultsList, highlightedResultsEntry);
@@ -171,32 +187,20 @@ function renderLeaderboardList(listElement, emptyElement, entries, highlightedEn
   listElement.hidden = !hasEntries;
 
   entries.forEach((entry, index) => {
-    const item = document.createElement("li");
-    item.className = "leaderboard-entry";
-
-    if (highlightedEntry && areSameLeaderboardEntry(entry, highlightedEntry)) {
-      item.classList.add("is-recent");
-    }
-
-    const topLine = document.createElement("div");
-    topLine.className = "leaderboard-topline";
-
-    const rank = document.createElement("span");
-    rank.className = "leaderboard-rank";
-    rank.textContent = `${index + 1}.`;
-
-    const name = document.createElement("span");
-    name.className = "leaderboard-name";
-    name.textContent = entry.playerName;
-
-    const score = document.createElement("span");
-    score.className = "leaderboard-score";
-    score.textContent = `${entry.correctAnswers} / ${entry.totalQuestions}`;
-
-    topLine.append(rank, name, score);
-    item.appendChild(topLine);
-    listElement.appendChild(item);
+    listElement.appendChild(createLeaderboardEntryElement(entry, index, highlightedEntry));
   });
+}
+
+function renderFeaturedLeaderboardEntry(containerElement, entryElement, entry, highlightedEntry = null) {
+  entryElement.innerHTML = "";
+  containerElement.hidden = !entry;
+
+  if (!entry) {
+    return;
+  }
+
+  const featuredEntry = createLeaderboardEntryElement(entry, 0, highlightedEntry, true, "div");
+  entryElement.appendChild(featuredEntry);
 }
 
 function scrollLeaderboardEntryIntoView(listElement, highlightedEntry) {
@@ -217,6 +221,10 @@ function scrollLeaderboardEntryIntoView(listElement, highlightedEntry) {
       behavior: "smooth",
     });
   });
+}
+
+function toggleLeaderboardGroup(groupElement, hasEntries) {
+  groupElement.hidden = !hasEntries;
 }
 
 function formatHistorySummary(entry) {
@@ -265,4 +273,33 @@ function areSameLeaderboardEntry(left, right) {
     left.score === right.score &&
     left.date === right.date
   );
+}
+
+function createLeaderboardEntryElement(entry, index, highlightedEntry = null, isFeatured = false, tagName = "li") {
+  const item = document.createElement(tagName);
+  item.className = `leaderboard-entry${isFeatured ? " leaderboard-entry-featured" : ""}`;
+
+  if (highlightedEntry && areSameLeaderboardEntry(entry, highlightedEntry)) {
+    item.classList.add("is-recent");
+  }
+
+  const topLine = document.createElement("div");
+  topLine.className = "leaderboard-topline";
+
+  const rank = document.createElement("span");
+  rank.className = "leaderboard-rank";
+  rank.textContent = isFeatured ? "🥇" : `${index + 1}.`;
+
+  const name = document.createElement("span");
+  name.className = "leaderboard-name";
+  name.textContent = entry.playerName;
+
+  const score = document.createElement("span");
+  score.className = "leaderboard-score";
+  score.textContent = `${entry.correctAnswers} / ${entry.totalQuestions}`;
+
+  topLine.append(rank, name, score);
+  item.appendChild(topLine);
+
+  return item;
 }

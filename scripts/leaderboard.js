@@ -75,6 +75,19 @@ export function buildLeaderboardEntry(gameState, playerName) {
   };
 }
 
+export function getBestWeeklyLeaderboardEntry(entries, now = new Date()) {
+  const weekAgoTimestamp = now.getTime() - 7 * 24 * 60 * 60 * 1000;
+
+  return (
+    sortLeaderboardEntries(
+      entries.filter((entry) => {
+        const entryTimestamp = new Date(entry.date).getTime();
+        return Number.isFinite(entryTimestamp) && entryTimestamp >= weekAgoTimestamp;
+      })
+    )[0] ?? null
+  );
+}
+
 function saveLocalLeaderboardEntry(entry) {
   const nextEntries = [...loadLocalLeaderboardEntries(), entry];
   const sortedEntries = sortLeaderboardEntries(nextEntries);

@@ -118,6 +118,10 @@
     padding: 0.65rem 0.75rem;
   }
 
+  .leaderboard-group-title {
+    font-size: 0.9rem;
+  }
+
   .leaderboard-topline {
     gap: 0.5rem;
     font-size: 0.9rem;

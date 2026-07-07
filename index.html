@@ -39,7 +39,7 @@
               type="text"
               maxlength="20"
               autocomplete="nickname"
-              placeholder="Player123"
+              placeholder="Player Name"
             />
           </div>
           <button class="primary-button" id="start-game-button" type="button" disabled>Start Game</button>
@@ -48,11 +48,19 @@
         <div class="panel leaderboard-panel">
           <div class="section-heading">
             <h2>🏆 Leaderboard</h2>
-            <p>Top 10 players</p>
           </div>
-          <p id="leaderboard-status" class="leaderboard-status" aria-live="polite">Loading leaderboard...</p>
-          <div id="leaderboard-empty" class="empty-state">No scores yet. Be the first to play.</div>
-          <ol id="leaderboard-list" class="leaderboard-list" aria-live="polite"></ol>
+          <div class="leaderboard-body">
+            <p id="leaderboard-status" class="leaderboard-status" aria-live="polite">Loading leaderboard...</p>
+            <div id="leaderboard-empty" class="empty-state">No scores yet. Be the first to play.</div>
+            <div id="leaderboard-featured" class="leaderboard-featured" hidden>
+              <p class="leaderboard-group-title">The best player of week</p>
+              <div id="leaderboard-featured-entry"></div>
+            </div>
+            <div id="leaderboard-group" class="leaderboard-group">
+              <p class="leaderboard-group-title">Top 10 players of all time</p>
+              <ol id="leaderboard-list" class="leaderboard-list" aria-live="polite"></ol>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -120,11 +128,20 @@
           <div class="section-heading">
             <h2>🏆 Leaderboard</h2>
           </div>
-          <p id="results-leaderboard-status" class="leaderboard-status" aria-live="polite">
-            Loading leaderboard...
-          </p>
-          <div id="results-leaderboard-empty" class="empty-state">No scores yet. Finish a round to set the pace.</div>
-          <ol id="results-leaderboard-list" class="leaderboard-list" aria-live="polite"></ol>
+          <div class="leaderboard-body">
+            <p id="results-leaderboard-status" class="leaderboard-status" aria-live="polite">
+              Loading leaderboard...
+            </p>
+            <div id="results-leaderboard-empty" class="empty-state">No scores yet. Finish a round to set the pace.</div>
+            <div id="results-leaderboard-featured" class="leaderboard-featured" hidden>
+              <p class="leaderboard-group-title">The best player of week</p>
+              <div id="results-leaderboard-featured-entry"></div>
+            </div>
+            <div id="results-leaderboard-group" class="leaderboard-group">
+              <p class="leaderboard-group-title">Top players of all time</p>
+              <ol id="results-leaderboard-list" class="leaderboard-list" aria-live="polite"></ol>
+            </div>
+          </div>
         </div>
       </section>
     </main>
