@@ -16,6 +16,10 @@
 }
 
 @media (max-width: 767px) {
+  .app-shell {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 1rem);
+  }
+
   #start-screen,
   #results-screen {
     grid-template-rows: auto minmax(0, 1fr);

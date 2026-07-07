@@ -4,6 +4,22 @@
 
 Guess the Flag
 
+## Local Deployment Token
+
+For future Yhub redeployments, the current project-local token is stored in:
+
+```text
+.env.local
+```
+
+Variable name:
+
+```text
+YHUB_DEPLOY_TOKEN
+```
+
+Treat this file as a local secret and do not commit it.
+
 ## Purpose
 
 A lightweight browser game where players identify countries by their flags.
