@@ -1,6 +1,7 @@
 export const GAME_DURATION_SECONDS = 60;
 export const ANSWERS_PER_QUESTION = 4;
-export const ANSWER_FEEDBACK_DELAY_MS = 900;
+export const CORRECT_ANSWER_FEEDBACK_DELAY_MS = 200;
+export const WRONG_ANSWER_FEEDBACK_DELAY_MS = 600;
 export const MAX_LEADERBOARD_ENTRIES = 10;
 export const LEADERBOARD_STORAGE_KEY = "guess-the-flag-leaderboard";
 export const PLAYER_NAME_STORAGE_KEY = "guess-the-flag-player-name";

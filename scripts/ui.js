@@ -83,12 +83,14 @@ export function renderLeaderboard(entries) {
     elements.leaderboard.startEmpty,
     entries.slice(0, MAX_LEADERBOARD_ENTRIES)
   );
+  const highlightedResultsEntry = findMatchingSavedEntry(entries);
   renderLeaderboardList(
     elements.leaderboard.resultsList,
     elements.leaderboard.resultsEmpty,
     entries,
-    findMatchingSavedEntry(entries)
+    highlightedResultsEntry
   );
+  scrollLeaderboardEntryIntoView(elements.leaderboard.resultsList, highlightedResultsEntry);
 }
 
 export function renderHistory(questionHistory) {
@@ -194,6 +196,26 @@ function renderLeaderboardList(listElement, emptyElement, entries, highlightedEn
     topLine.append(rank, name, score);
     item.appendChild(topLine);
     listElement.appendChild(item);
+  });
+}
+
+function scrollLeaderboardEntryIntoView(listElement, highlightedEntry) {
+  window.requestAnimationFrame(() => {
+    if (!highlightedEntry) {
+      listElement.scrollTop = 0;
+      return;
+    }
+
+    const highlightedElement = listElement.querySelector(".leaderboard-entry.is-recent");
+
+    if (!highlightedElement) {
+      return;
+    }
+
+    highlightedElement.scrollIntoView({
+      block: "center",
+      behavior: "smooth",
+    });
   });
 }
 

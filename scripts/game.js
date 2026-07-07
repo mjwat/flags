@@ -1,4 +1,9 @@
-import { ANSWER_FEEDBACK_DELAY_MS, ANSWERS_PER_QUESTION, GAME_DURATION_SECONDS } from "./config.js";
+import {
+  ANSWERS_PER_QUESTION,
+  CORRECT_ANSWER_FEEDBACK_DELAY_MS,
+  GAME_DURATION_SECONDS,
+  WRONG_ANSWER_FEEDBACK_DELAY_MS,
+} from "./config.js";
 import { pickRandomItem, shuffleArray } from "./utils.js";
 
 export function resetGameState(state) {
@@ -44,14 +49,18 @@ export function clearNextQuestionTimeout(state) {
   }
 }
 
-export function scheduleNextQuestion(state, callback) {
+export function scheduleNextQuestion(state, callback, isCorrectAnswer) {
   clearNextQuestionTimeout(state);
+
+  const feedbackDelay = isCorrectAnswer
+    ? CORRECT_ANSWER_FEEDBACK_DELAY_MS
+    : WRONG_ANSWER_FEEDBACK_DELAY_MS;
 
   state.nextQuestionTimeoutId = window.setTimeout(() => {
     if (state.isGameActive && state.timeLeft > 0) {
       callback();
     }
-  }, ANSWER_FEEDBACK_DELAY_MS);
+  }, feedbackDelay);
 }
 
 export function createQuestion(state) {

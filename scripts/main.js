@@ -132,7 +132,7 @@ function handleAnswerSelection(selectedButton) {
   renderHistory(state.questionHistory);
   setFeedbackMessage("");
   updateGameHeader(state.score, state.questionNumber, state.timeLeft);
-  scheduleNextQuestion(state, showNextQuestion);
+  scheduleNextQuestion(state, showNextQuestion, isCorrectAnswer);
 }
 
 function handleTimerTap() {

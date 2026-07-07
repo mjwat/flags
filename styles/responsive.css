@@ -17,7 +17,7 @@
 
 @media (max-width: 767px) {
   .app-shell {
-    padding-top: calc(env(safe-area-inset-top, 0px) + 1rem);
+    padding-top: calc(env(safe-area-inset-top, 0px) + 3rem);
   }
 
   #start-screen,
