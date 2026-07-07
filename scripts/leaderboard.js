@@ -7,9 +7,9 @@ import {
 
 export async function refreshStartLeaderboard() {
   try {
-    const remoteEntries = await fetchRemoteLeaderboard(MAX_START_LEADERBOARD_ENTRIES);
+    const remoteEntries = await fetchRemoteLeaderboard(MAX_RESULTS_LEADERBOARD_ENTRIES);
     return {
-      entries: sortLeaderboardEntries(remoteEntries),
+      entries: sortLeaderboardEntries(remoteEntries).slice(0, MAX_START_LEADERBOARD_ENTRIES),
       source: "global",
     };
   } catch (error) {
