@@ -79,7 +79,8 @@ export function disableAnswerButtons() {
 }
 
 export function renderLeaderboard(startEntries, resultsEntries) {
-  const bestWeeklyEntry = getBestWeeklyLeaderboardEntry(resultsEntries);
+  const featuredEntries = resultsEntries.length > 0 ? resultsEntries : startEntries;
+  const bestWeeklyEntry = getBestWeeklyLeaderboardEntry(featuredEntries);
   renderFeaturedLeaderboardEntry(
     elements.leaderboard.startFeatured,
     elements.leaderboard.startFeaturedEntry,
