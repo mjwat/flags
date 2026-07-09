@@ -1,14 +1,14 @@
 .app-shell {
   position: relative;
   z-index: 1;
-  width: min(calc(100% - 2rem), var(--max-width));
+  width: 100%;
   height: 100vh;
   min-height: 100dvh;
-  margin: 0 auto;
-  padding: 1.5rem 0 2.5rem;
+  padding: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: var(--page-background);
 }
 
 .screen {
@@ -17,16 +17,15 @@
   align-items: start;
   flex: 1;
   min-height: 0;
+  width: min(calc(100% - 2rem), var(--max-width));
+  margin: 0 auto;
+  padding: 1.5rem 0 2.5rem;
+  overflow: hidden;
 }
 
 #start-screen,
 #results-screen {
-  width: 100%;
-  max-width: 760px;
-  height: 100%;
-  margin: 0 auto;
   grid-template-rows: auto minmax(0, 1fr);
-  overflow: hidden;
 }
 
 .screen[hidden] {
@@ -65,7 +64,7 @@
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   min-height: 0;
-  max-height: 100%;
+  height: 100%;
 }
 
 .results-header {

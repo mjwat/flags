@@ -49,7 +49,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   min-height: 100dvh;
-  overflow-x: hidden;
+  overflow: hidden;
   font-family: "Segoe UI", "Avenir Next", "Helvetica Neue", sans-serif;
   color: var(--text-color);
   background: var(--page-background);
