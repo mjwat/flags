@@ -3,6 +3,7 @@
   z-index: 1;
   width: min(calc(100% - 2rem), var(--max-width));
   height: 100vh;
+  min-height: 100dvh;
   margin: 0 auto;
   padding: 1.5rem 0 2.5rem;
   display: flex;

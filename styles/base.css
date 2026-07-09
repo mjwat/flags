@@ -2,6 +2,11 @@
   --bg-base: #f4f7fb;
   --bg-deep: #dce8f4;
   --bg-warm: #fff5e8;
+  --page-background:
+    radial-gradient(circle at top left, rgba(29, 111, 220, 0.18), transparent 24%),
+    radial-gradient(circle at 85% 18%, rgba(244, 140, 69, 0.2), transparent 18%),
+    radial-gradient(circle at bottom right, rgba(33, 176, 135, 0.14), transparent 22%),
+    linear-gradient(145deg, var(--bg-base), var(--bg-deep) 52%, var(--bg-warm));
   --surface-color: rgba(255, 255, 255, 0.78);
   --surface-strong: rgba(255, 255, 255, 0.95);
   --surface-soft: rgba(244, 248, 252, 0.9);
@@ -34,6 +39,8 @@
 
 html {
   color-scheme: light;
+  min-height: 100%;
+  background: var(--page-background);
 }
 
 body {
@@ -41,14 +48,11 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  min-height: 100dvh;
   overflow-x: hidden;
   font-family: "Segoe UI", "Avenir Next", "Helvetica Neue", sans-serif;
   color: var(--text-color);
-  background:
-    radial-gradient(circle at top left, rgba(29, 111, 220, 0.18), transparent 24%),
-    radial-gradient(circle at 85% 18%, rgba(244, 140, 69, 0.2), transparent 18%),
-    radial-gradient(circle at bottom right, rgba(33, 176, 135, 0.14), transparent 22%),
-    linear-gradient(145deg, var(--bg-base), var(--bg-deep) 52%, var(--bg-warm));
+  background: var(--page-background);
 }
 
 body::before,

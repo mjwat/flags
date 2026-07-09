@@ -442,6 +442,12 @@ input[type="text"]:focus-visible {
   text-align: center;
 }
 
+.leaderboard-save-status {
+  min-height: 0;
+  margin-top: 0.35rem;
+  text-align: left;
+}
+
 .save-status.is-success {
   color: var(--success-color);
 }

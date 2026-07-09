@@ -16,8 +16,43 @@
 }
 
 @media (max-width: 767px) {
+  body {
+    background-attachment: fixed;
+  }
+
+  body::before,
+  body::after {
+    inset: auto 0 auto 0;
+    width: 100%;
+    height: auto;
+    border-radius: 0;
+    filter: none;
+    z-index: 0;
+  }
+
+  body::before {
+    top: 0;
+    height: calc(env(safe-area-inset-top, 0px) + 1.25rem);
+    background:
+      linear-gradient(180deg, rgba(227, 237, 248, 0.98), rgba(227, 237, 248, 0.72)),
+      var(--page-background);
+    backdrop-filter: blur(10px);
+  }
+
+  body::after {
+    bottom: 0;
+    height: calc(env(safe-area-inset-bottom, 0px) + 1.6rem);
+    background:
+      linear-gradient(0deg, rgba(245, 248, 252, 0.98), rgba(245, 248, 252, 0.72)),
+      var(--page-background);
+    backdrop-filter: blur(10px);
+  }
+
   .app-shell {
+    height: auto;
+    min-height: 100dvh;
     padding-top: calc(env(safe-area-inset-top, 0px) + 3rem);
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 3.5rem);
   }
 
   #start-screen,

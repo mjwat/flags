@@ -6,11 +6,17 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
+    <meta name="theme-color" content="#1d6fdc" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Guess the Flag" />
     <title>Guess the Flag</title>
     <link
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='50' font-size='48'%3E%F0%9F%87%B5%F0%9F%87%B9%3C/text%3E%3C/svg%3E"
     />
+    <link rel="apple-touch-icon" sizes="180x180" href="media/apple-touch-icon.png" />
+    <link rel="manifest" href="site.webmanifest" />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
@@ -121,12 +127,12 @@
           <div class="results-actions">
             <button class="secondary-button" id="play-again-button" type="button">Play Again</button>
           </div>
-          <p id="save-status" class="save-status results-save-status" aria-live="polite"></p>
         </div>
 
         <div class="panel leaderboard-panel">
           <div class="section-heading">
             <h2>🏆 Leaderboard</h2>
+            <p id="save-status" class="save-status leaderboard-save-status" aria-live="polite"></p>
           </div>
           <div class="leaderboard-body">
             <p id="results-leaderboard-status" class="leaderboard-status" aria-live="polite">
